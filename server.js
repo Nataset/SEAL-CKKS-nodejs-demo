@@ -7,7 +7,7 @@ async function main() {
     const app = express();
     const seal = await SEAL();
 
-    app.use(express.json({ limit: '50mb' }));
+    app.use(express.json({ limit: '1mb' }));
 
     app.get('/', (req, res) => {
         // res.json({ Hi: 'Hello World!' });
@@ -18,9 +18,10 @@ async function main() {
     });
 
     app.post('/', (req, res) => {
-        console.log('\nGot POST Request');
+        const size = Buffer.byteLength(JSON.stringify(req.body));
+        const mbSize = size / (1024 * 1024);
+        console.log('\nGot POST Request, Request body size:', mbSize.toFixed(2), 'MB');
         console.time('Time taken by CKKS');
-
         const { parmsBase64, pkBase64, dataABase64, dataBBase64 } = req.body;
 
         // load parms in to context
