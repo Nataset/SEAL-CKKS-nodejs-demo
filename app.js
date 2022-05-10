@@ -50,6 +50,8 @@ async function main() {
     encryptor.encrypt(Plain_A, Cipher_A);
     encryptor.encrypt(Plain_B, Cipher_B);
 
+    console.log(Cipher_A.save());
+
     const Cipher_Result = seal.CipherText();
     evaluator.add(Cipher_A, Cipher_B, Cipher_Result);
 

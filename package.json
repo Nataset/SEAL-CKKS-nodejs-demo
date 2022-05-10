@@ -1,5 +1,9 @@
 {
+  "scripts": {
+    "start": "node server.js"
+  },
   "dependencies": {
+    "express": "^4.18.1",
     "node-seal": "^5.0.0",
     "prompt-sync": "^4.2.0"
   },
