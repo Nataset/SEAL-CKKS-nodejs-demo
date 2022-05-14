@@ -50,10 +50,9 @@ async function main() {
     encryptor.encrypt(Plain_A, Cipher_A);
     encryptor.encrypt(Plain_B, Cipher_B);
 
-    console.log(Cipher_A.save());
-
     const Cipher_Result = seal.CipherText();
     evaluator.add(Cipher_A, Cipher_B, Cipher_Result);
+    evaluator.exponentiate(Cipher_Result, 2, Relin_key_Keypair_A_, Cipher_Result);
 
     const Plain_Result = seal.PlainText();
     decryptor.decrypt(Cipher_Result, Plain_Result);

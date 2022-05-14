@@ -22,7 +22,7 @@ async function main() {
         const mbSize = size / (1024 * 1024);
         console.log('\nGot POST Request, Request body size:', mbSize.toFixed(2), 'MB');
         console.time('Time taken by CKKS');
-        const { parmsBase64, pkBase64, dataABase64, dataBBase64 } = req.body;
+        const { parmsBase64, pkBase64, dataABase64, dataBBase64, rlkBase64 } = req.body;
 
         // load parms in to context
         const parms = seal.EncryptionParameters(seal.SchemeType.ckks);
@@ -33,7 +33,9 @@ async function main() {
 
         // load publickey
         const public_key = seal.PublicKey();
+        const relin_key = seal.RelinKeys();
         public_key.load(context, pkBase64);
+        relin_key.load(context, rlkBase64);
 
         // load data in cipherText
         const cipher_a = seal.CipherText();
