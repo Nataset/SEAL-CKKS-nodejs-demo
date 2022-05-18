@@ -10,10 +10,6 @@ async function main() {
     app.use(express.json({ limit: '1mb' }));
 
     app.get('/', (req, res) => {
-        // res.json({ Hi: 'Hello World!' });
-
-        const cipher_result = seal.CipherText();
-        console.dir(cipher_result);
         res.json({ Hi: 'HELLO WORLD' });
     });
 
@@ -44,18 +40,18 @@ async function main() {
         cipher_a.load(context, dataABase64);
         cipher_b.load(context, dataBBase64);
 
-        const plain_z = seal.PlainText();
-        const cipher_z = seal.CipherText();
+        const plain_c = seal.PlainText();
+        const cipher_c = seal.CipherText();
 
         const ckksEncoder = seal.CKKSEncoder(context);
         const evaluator = seal.Evaluator(context);
         const encryptor = seal.Encryptor(context, public_key);
-        ckksEncoder.encode(Float64Array.from([100]), Math.pow(2, 30), plain_z);
-        encryptor.encrypt(plain_z, cipher_z);
+        ckksEncoder.encode(Float64Array.from([100]), Math.pow(2, 30), plain_c);
+        encryptor.encrypt(plain_c, cipher_c);
 
         const cipher_result = seal.CipherText();
         evaluator.add(cipher_a, cipher_b, cipher_result);
-        evaluator.add(cipher_result, cipher_z, cipher_result);
+        evaluator.add(cipher_result, cipher_c, cipher_result);
 
         const cipherResultBase64 = cipher_result.save();
 
