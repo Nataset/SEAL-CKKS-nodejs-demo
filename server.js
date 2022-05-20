@@ -7,21 +7,28 @@ async function main() {
     const app = express();
     const seal = await SEAL();
 
-    app.use(express.json({ limit: '1mb' }));
+    app.use(express.json({ limit: '5mb' }));
 
     app.get('/', (req, res) => {
         res.json({ Hi: 'HELLO WORLD' });
     });
 
-    app.post('/', (req, res) => {
+    app.post('/', (req, res, next) => {
+        console.log('Reuest Type:', req.method);
+        next();
+    });
+
+    app.post('/:scheme', (req, res) => {
         const size = Buffer.byteLength(JSON.stringify(req.body));
         const mbSize = size / (1024 * 1024);
-        console.log('\nGot POST Request, Request body size:', mbSize.toFixed(2), 'MB');
-        console.time('Time taken by CKKS');
+        const reqScheme = req.params.scheme;
+        console.log(`\nGot POST Request, Request body size:`, mbSize.toFixed(2), 'MB');
+        console.log(`|------ Scheme Type: ${reqScheme.toUpperCase()} ------|`);
+        console.time(`Time taken by ${reqScheme.toUpperCase()}`);
         const { parmsBase64, pkBase64, dataABase64, dataBBase64, rlkBase64 } = req.body;
 
         // load parms in to context
-        const parms = seal.EncryptionParameters(seal.SchemeType.ckks);
+        const parms = seal.EncryptionParameters();
         parms.load(parmsBase64);
 
         // createa context
@@ -43,26 +50,35 @@ async function main() {
         const plain_c = seal.PlainText();
         const cipher_c = seal.CipherText();
 
-        const ckksEncoder = seal.CKKSEncoder(context);
-        const evaluator = seal.Evaluator(context);
         const encryptor = seal.Encryptor(context, public_key);
-        ckksEncoder.encode(Float64Array.from([100]), Math.pow(2, 30), plain_c);
+        const evaluator = seal.Evaluator(context);
+        let cipherResultBase64 = null;
+
+        switch (reqScheme) {
+            case 'ckks':
+                const ckksEncoder = seal.CKKSEncoder(context);
+                ckksEncoder.encode(Float64Array.from([100]), Math.pow(2, 30), plain_c);
+                break;
+            case 'bfv':
+            case 'bgv':
+                const batchEncoder = seal.BatchEncoder(context);
+                batchEncoder.encode(Int32Array.from([100]), plain_c);
+                break;
+        }
         encryptor.encrypt(plain_c, cipher_c);
 
         const cipher_result = seal.CipherText();
         evaluator.add(cipher_a, cipher_b, cipher_result);
         evaluator.add(cipher_result, cipher_c, cipher_result);
 
-        const cipherResultBase64 = cipher_result.save();
-
+        cipherResultBase64 = cipher_result.save();
         res.json({ result: cipherResultBase64 });
-
         console.log('Finish compute response with status code: ', res.statusCode);
-        console.timeEnd('Time taken by CKKS');
+        console.timeEnd(`Time taken by ${reqScheme.toUpperCase()}`);
     });
 
-    app.listen(port, () => {
-        console.log(`Server start at port: ${port}`);
+    app.listen(3000, () => {
+        console.log(`listening on port 3000`);
     });
 }
 
